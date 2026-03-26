@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { ethers } from "ethers";
+import jsPDF from "jspdf";
+import QRCode from "qrcode";
 
-const CONTRACT_ADDRESS = "0xf8e81D47203A594245E36C48e151709F0C19fBe8";
+const CONTRACT_ADDRESS = "0xD7ACd2a9FD159E69Bb102A1ca21C9a3e3A5F771B";
 
 const ABI = [
   "function notarize(bytes32 _hash)",
-  "function verify(bytes32 _hash) view returns (bool,address,uint256)"
+  "function verify(bytes32 _hash) view returns (bool,address,uint256)",
+  "function signDocument(bytes32 _hash)",
+  "function isApproved(bytes32 _hash) view returns (bool)"
 ];
 
 export default function App() {
@@ -37,45 +41,69 @@ export default function App() {
     const accounts = await provider.send("eth_requestAccounts", []);
     setAccount(accounts[0]);
   }
+  async function signHash(hash, signer) {
+  const domain = {
+    name: "BlockStamp",
+    version: "1",
+    chainId: 80001,
+    verifyingContract: CONTRACT_ADDRESS,
+  };
+
+  const types = {
+    Notarization: [{ name: "hash", type: "bytes32" }],
+  };
+
+  const value = {
+    hash: "0x" + hash,
+  };
+
+  return await signer.signTypedData(domain, types, value);
+}
 
   // 📝 Notarize
   async function notarize() {
-    if (!hash) return alert("Generate hash first");
+    
+  if (!hash) return alert("Generate hash first");
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
 
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-    const tx = await contract.notarize("0x" + hash);
-    await tx.wait();
+  // ✍️ NEW: sign before sending
+  const signature = await signHash(hash, signer);
 
-    setStatus("Notarized ✅");
+  console.log("Signature:", signature);
+
+  const tx = await contract.notarize("0x" + hash);
+  await tx.wait();
+
+  setStatus(`Notarized ✅\nTx: ${tx.hash}`);
+
+  // 📄 Generate certificate
+  generatePDF(hash, tx.hash);
+
+
   }
+  async function generatePDF(hash, txHash) {
+  const doc = new jsPDF();
 
-  // 🔍 Verify
-  async function verifyDoc() {
-    if (!hash) return alert("Generate hash first");
+  doc.text("BlockStamp Certificate", 20, 20);
+  doc.text(`Hash: ${hash}`, 20, 40);
+  doc.text(`Tx: ${txHash}`, 20, 60);
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+  const qr = await QRCode.toDataURL(
+    `https://mumbai.polygonscan.com/tx/${txHash}`
+  );
 
-    const result = await contract.verify("0x" + hash);
+  doc.addImage(qr, "PNG", 20, 80, 50, 50);
 
-    if (result[0]) {
-      setStatus(
-        `Valid ✅\nSigner: ${result[1]}\nTime: ${new Date(
-          Number(result[2]) * 1000
-        ).toLocaleString()}`
-      );
-    } else {
-      setStatus("Not Found ❌");
-    }
-  }
+  doc.save("certificate.pdf");
+}
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>📜 Decentralized Notary</h1>
+      <h1>🔐 BlockStamp - Decentralized Notary</h1>
 
       <input type="file" onChange={(e) => setFile(e.target.files[0])} />
       <br /><br />
