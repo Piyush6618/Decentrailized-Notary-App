@@ -65,3 +65,79 @@ BlockStamp provides a **trustless notarization system** using blockchain:
 ---
 
 ## 📂 Project Structure
+
+```
+Decentralized-Notary-App/
+│
+├── src/
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── styles
+│
+├── public/
+├── package.json
+└── README.md
+```
+
+---
+
+## 🧑‍💻 Installation & Setup
+
+### 1. Clone repo
+```bash
+git clone https://github.com/Piyush6618/Decentrailized-Notary-App.git
+cd Decentrailized-Notary-App
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Run locally
+```bash
+npm run dev
+```
+
+---
+
+## 🔗 Smart Contract
+
+- Network: Polygon Mumbai Testnet  
+- Contract Address: `0xD7ACd2a9FD159E69Bb102A1ca21C9a3e3A5F771B`
+
+---
+
+## ⚠️ Requirements
+
+- MetaMask installed  
+- Mumbai testnet selected  
+- Test MATIC for transactions  
+
+---
+
+## 🔮 Future Improvements
+
+- 🛡️ Multisig validation (Gnosis Safe)  
+- 📄 PDF certificate generation  
+- 🧬 Zero-knowledge identity integration  
+- 🤖 AI-based document validation  
+
+---
+
+## 👨‍💻 Author
+
+**Piyush Gupta**  
+GitHub: https://github.com/Piyush6618
+
+---
+
+## ⭐ Contributing
+
+Pull requests are welcome! For major changes, please open an issue first.
+
+---
+
+## 📜 License
+
+MIT License
