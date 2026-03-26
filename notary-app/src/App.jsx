@@ -100,6 +100,24 @@ export default function App() {
 
   doc.save("certificate.pdf");
 }
+async function verifyDoc() {
+  if (!hash) return alert("Generate hash first");
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+  const result = await contract.verify("0x" + hash);
+
+  if (result[0]) {
+    setStatus(
+      `Valid ✅\nSigner: ${result[1]}\nTime: ${new Date(
+        Number(result[2]) * 1000
+      ).toLocaleString()}`
+    );
+  } else {
+    setStatus("Not Found ❌");
+  }
+}
 
   return (
     <div style={{ padding: 20 }}>
